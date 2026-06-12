@@ -1,7 +1,6 @@
 CLAUDE.md
-*.html
-!reports/benchmark_results.html
 names.txt
+reports/studies/
 
 __pycache__/
 *.py[cod]
