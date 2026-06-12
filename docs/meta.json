@@ -1,0 +1,7 @@
+{
+  "desc": "Character-level language model benchmark suite comparing makemore variants",
+  "tags": [
+    "PyTorch",
+    "NLP"
+  ]
+}
