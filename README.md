@@ -8,7 +8,7 @@ Measures both **sampling speed** and **generalization accuracy (NLL)** on a 90/1
 
 ## Report
 
-[View full benchmark report](https://htmlpreview.github.io/?https://github.com/seungjae99/makemore_benchmark/blob/main/benchmark_results.html)
+[View full benchmark report](https://htmlpreview.github.io/?https://github.com/seungjae99/makemore_benchmark/blob/main/reports/benchmark_results.html)
 
 ---
 
