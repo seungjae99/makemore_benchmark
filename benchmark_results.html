@@ -284,25 +284,21 @@
     <div class="card-title">Key Takeaways</div>
     <div class="takeaway-list">
       <div class="takeaway">
-        <span class="tk-icon">🏆</span>
         <div class="tk-body">
           <strong>Count-based wins on both dimensions.</strong> It is ~2× faster AND has lower test NLL (2.4511 vs 2.4712). At bigram scale, a smoothed frequency table is the optimal approach.
         </div>
       </div>
       <div class="takeaway">
-        <span class="tk-icon">📉</span>
         <div class="tk-body">
           <strong>The neural model's accuracy gap is fixable.</strong> More epochs, a decaying learning rate, or tuned L2 would close the 0.02 NLL gap — but it still can't beat the count model's speed.
         </div>
       </div>
       <div class="takeaway">
-        <span class="tk-icon">🧮</span>
         <div class="tk-body">
           <strong>Autograd overhead is small at this scale.</strong> <code>no_grad</code> saves 19% — the matmul + exp dominates, not bookkeeping.
         </div>
       </div>
       <div class="takeaway">
-        <span class="tk-icon">🚀</span>
         <div class="tk-body">
           <strong>Neural pays off when the architecture grows.</strong> Once context window &gt; 1 (MLP / Transformer), a lookup table is no longer feasible — that's where neural wins.
         </div>
