@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Benchmark Results</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f1117; color: #e2e8f0; padding: 40px 24px; }
+  .wrap { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+
+  h1 { font-size: 1.5rem; font-weight: 700; color: #f8fafc; }
+  .meta { font-size: 0.82rem; color: #64748b; margin-top: 4px; }
+
+  .card { background: #1e2130; border: 1px solid #2d3148; border-radius: 12px; padding: 24px; }
+  .card-title { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b; margin-bottom: 18px; }
+  code { font-family: monospace; font-size: 0.82rem; background: #0f1117; border-radius: 3px; padding: 1px 6px; color: #c4b5fd; }
+
+  /* Split badge row */
+  .split-row { display: flex; gap: 12px; margin-bottom: 0; }
+  .split-box { flex: 1; border-radius: 8px; padding: 14px 16px; text-align: center; }
+  .split-box.train { background: #0f2139; border: 1px solid #3b82f6; }
+  .split-box.test  { background: #1a1028; border: 1px solid #a855f7; }
+  .split-box .num  { font-size: 1.5rem; font-weight: 800; margin-bottom: 2px; }
+  .split-box.train .num { color: #60a5fa; }
+  .split-box.test  .num { color: #c084fc; }
+  .split-box .lbl  { font-size: 0.75rem; color: #64748b; }
+
+  /* Loss comparison */
+  .loss-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .loss-card { border-radius: 8px; padding: 16px 20px; }
+  .loss-card.count  { background: #0f2139; border: 1.5px solid #3b82f6; }
+  .loss-card.neural { background: #1a1028; border: 1.5px solid #a855f7; }
+  .loss-label { font-size: 0.78rem; color: #64748b; margin-bottom: 6px; }
+  .loss-value { font-size: 2rem; font-weight: 800; }
+  .loss-card.count  .loss-value { color: #60a5fa; }
+  .loss-card.neural .loss-value { color: #c084fc; }
+  .loss-model { font-size: 0.8rem; font-weight: 600; margin-top: 4px; }
+  .loss-card.count  .loss-model { color: #93c5fd; }
+  .loss-card.neural .loss-model { color: #d8b4fe; }
+  .loss-winner { display: inline-block; font-size: 0.68rem; font-weight: 700; padding: 2px 7px; border-radius: 4px; margin-top: 6px; background: #14532d; color: #86efac; }
+
+  /* Bar chart */
+  .bar-group { display: flex; flex-direction: column; gap: 18px; }
+  .bar-row { display: flex; flex-direction: column; gap: 6px; }
+  .bar-label { font-size: 0.83rem; font-weight: 600; display: flex; justify-content: space-between; }
+  .bar-label .val { color: #94a3b8; font-weight: 400; font-size: 0.8rem; }
+  .bar-track { background: #0f1117; border-radius: 6px; height: 28px; width: 100%; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 6px; display: flex; align-items: center; padding-left: 10px; font-size: 0.78rem; font-weight: 700; }
+  .bar-count  { background: linear-gradient(90deg, #1d4ed8, #3b82f6); color: #dbeafe; }
+  .bar-nograd { background: linear-gradient(90deg, #7c3aed, #a855f7); color: #ede9fe; }
+  .bar-grad   { background: linear-gradient(90deg, #9d174d, #ec4899); color: #fce7f3; }
+  .bar-ann { font-size: 0.75rem; color: #64748b; margin-top: 2px; }
+
+  /* Insight box */
+  .insight { background: #0f1117; border-left: 3px solid #f59e0b; border-radius: 0 8px 8px 0; padding: 14px 16px; margin-top: 16px; }
+  .insight-title { font-size: 0.78rem; font-weight: 700; color: #fbbf24; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .insight-body { font-size: 0.83rem; color: #cbd5e1; line-height: 1.7; }
+
+  /* Why neural loss is higher */
+  .reason-list { display: flex; flex-direction: column; gap: 10px; }
+  .reason { display: flex; gap: 12px; align-items: flex-start; font-size: 0.83rem; line-height: 1.6; }
+  .reason-num { width: 22px; height: 22px; border-radius: 50%; background: #2d3148; color: #94a3b8; font-size: 0.72rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  .reason-body { color: #94a3b8; flex: 1; }
+  .reason-body strong { color: #e2e8f0; }
+
+  /* Sampling steps */
+  .sampling-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .sampling-col h3 { font-size: 0.85rem; font-weight: 700; margin-bottom: 14px; }
+  .h-count  { color: #60a5fa; }
+  .h-neural { color: #c084fc; }
+  .step-list { display: flex; flex-direction: column; gap: 0; }
+  .stp { display: flex; gap: 12px; }
+  .stp-left { display: flex; flex-direction: column; align-items: center; }
+  .stp-num { width: 22px; height: 22px; border-radius: 50%; font-size: 0.7rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .stp-line { width: 2px; background: #2d3148; flex: 1; min-height: 12px; margin: 2px 0; }
+  .stp-body { padding-bottom: 14px; flex: 1; }
+  .stp-name { font-size: 0.82rem; font-weight: 600; }
+  .stp-desc { font-size: 0.76rem; color: #94a3b8; margin-top: 2px; line-height: 1.5; }
+  .stp-cost { display: inline-block; font-size: 0.68rem; font-weight: 700; padding: 1px 6px; border-radius: 3px; margin-top: 4px; }
+  .cost-cheap  { background: #14532d; color: #86efac; }
+  .cost-medium { background: #451a03; color: #fbbf24; }
+  .cost-extra  { background: #7f1d1d; color: #fca5a5; }
+  .num-count  { background: #1e3a5f; border: 1.5px solid #3b82f6; color: #93c5fd; }
+  .num-neural { background: #2a1a3a; border: 1.5px solid #a855f7; color: #d8b4fe; }
+
+  /* Takeaways */
+  .takeaway-list { display: flex; flex-direction: column; gap: 12px; }
+  .takeaway { display: flex; gap: 14px; align-items: flex-start; font-size: 0.85rem; line-height: 1.6; }
+  .tk-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+  .tk-body strong { color: #f8fafc; }
+  .tk-body { color: #94a3b8; }
+
+  /* NLL explainer */
+  .formula-box { background: #0f1117; border-radius: 8px; padding: 14px 18px; font-family: monospace; font-size: 0.85rem; color: #c4b5fd; line-height: 2; }
+  .formula-comment { color: #475569; font-size: 0.78rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div>
+    <h1>Benchmark Results</h1>
+    <p class="meta">python3.9 · PyTorch 2.8.0 · macOS arm64 · train/test split 90/10 (seed 42)</p>
+  </div>
+
+  <!-- Dataset Split -->
+  <div class="card">
+    <div class="card-title">Dataset Split</div>
+    <div class="split-row">
+      <div class="split-box">
+        <div class="num" style="color:#94a3b8">32,033</div>
+        <div class="lbl">Total words (names.txt)</div>
+      </div>
+      <div class="split-box train">
+        <div class="num">28,829</div>
+        <div class="lbl">Train (90%) — used to fit both models</div>
+      </div>
+      <div class="split-box test">
+        <div class="num">3,204</div>
+        <div class="lbl">Test (10%) — held-out, 22,567 bigrams</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loss Comparison -->
+  <div class="card">
+    <div class="card-title">Accuracy — Test NLL Loss (lower is better)</div>
+    <div class="loss-grid">
+      <div class="loss-card count">
+        <div class="loss-label">Test NLL</div>
+        <div class="loss-value">2.4511</div>
+        <div class="loss-model">Count-based bigram</div>
+        <div class="loss-winner">winner</div>
+      </div>
+      <div class="loss-card neural">
+        <div class="loss-label">Test NLL</div>
+        <div class="loss-value">2.4712</div>
+        <div class="loss-model">Neural bigram</div>
+      </div>
+    </div>
+
+    <div style="font-size:0.78rem; color:#64748b; margin-bottom:16px;">
+      NLL = Negative Log-Likelihood. Measures how surprised the model is by each held-out bigram — lower means better predictions.
+    </div>
+
+    <div class="formula-box">
+      NLL = −(1/N) Σ log P(ch₂ | ch₁) &nbsp;<span class="formula-comment">← averaged over all bigrams in test set</span>
+    </div>
+
+    <div class="insight">
+      <div class="insight-title">Why is the neural model slightly worse?</div>
+      <div class="reason-list" style="margin-top:4px;">
+        <div class="reason">
+          <div class="reason-num">1</div>
+          <div class="reason-body"><strong>Under-trained:</strong> only 100 epochs with a fixed lr=50. The model hasn't fully converged to the optimal bigram distribution.</div>
+        </div>
+        <div class="reason">
+          <div class="reason-num">2</div>
+          <div class="reason-body"><strong>L2 over-regularization:</strong> λ=0.01 pushes weights toward zero, slightly distorting the learned probabilities.</div>
+        </div>
+        <div class="reason">
+          <div class="reason-num">3</div>
+          <div class="reason-body"><strong>Count-based has the right prior:</strong> Laplace smoothing (+1) is a provably optimal regularizer for bigram frequency estimation from discrete data.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Speed Bar Chart -->
+  <div class="card">
+    <div class="card-title">Speed — Sampling Latency (ms / sample) — lower is better</div>
+    <div class="bar-group">
+      <div class="bar-row">
+        <div class="bar-label">
+          <span>Count-based bigram</span>
+          <span class="val">0.0489 ms &nbsp;·&nbsp; 1.00×</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill bar-count" style="width:42%">fastest</div></div>
+        <div class="bar-ann">Direct probability table lookup — no computation at sampling time</div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">
+          <span>Neural (no_grad)</span>
+          <span class="val">0.0979 ms &nbsp;·&nbsp; 2.00×</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill bar-nograd" style="width:84%">2.00×</div></div>
+        <div class="bar-ann">Forward pass only — no autograd graph built</div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">
+          <span>Neural (with grad)</span>
+          <span class="val">0.1165 ms &nbsp;·&nbsp; 2.38×</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill bar-grad" style="width:100%">2.38×</div></div>
+        <div class="bar-ann">Forward pass + autograd bookkeeping (+19% vs no_grad)</div>
+      </div>
+    </div>
+
+    <div class="insight">
+      <div class="insight-title">no_grad speedup</div>
+      <div class="insight-body">
+        <code>torch.no_grad()</code> saves ~19% over grad-enabled (0.0979 vs 0.1165 ms).
+        The bottleneck is the forward arithmetic (matmul + exp + normalise), not gradient tracking.
+      </div>
+    </div>
+  </div>
+
+  <!-- What happens inside sample() -->
+  <div class="card">
+    <div class="card-title">What happens inside sample() at each character step</div>
+    <div class="sampling-grid">
+      <div class="sampling-col">
+        <h3 class="h-count">Count-based</h3>
+        <div class="step-list">
+          <div class="stp">
+            <div class="stp-left"><div class="stp-num num-count">1</div><div class="stp-line"></div></div>
+            <div class="stp-body">
+              <div class="stp-name">Row lookup</div>
+              <div class="stp-desc"><code>P[ix]</code> — grab pre-computed 27-element probability row</div>
+              <span class="stp-cost cost-cheap">O(1) index</span>
+            </div>
+          </div>
+          <div class="stp">
+            <div class="stp-left"><div class="stp-num num-count">2</div></div>
+            <div class="stp-body">
+              <div class="stp-name">Multinomial sample</div>
+              <div class="stp-desc"><code>torch.multinomial(P[ix], 1)</code></div>
+              <span class="stp-cost cost-cheap">27-element CDF scan</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="sampling-col">
+        <h3 class="h-neural">Neural</h3>
+        <div class="step-list">
+          <div class="stp">
+            <div class="stp-left"><div class="stp-num num-neural">1</div><div class="stp-line"></div></div>
+            <div class="stp-body">
+              <div class="stp-name">One-hot encode</div>
+              <div class="stp-desc">Build 1×27 zero tensor, set index <code>ix</code> to 1</div>
+              <span class="stp-cost cost-cheap">1×27 alloc</span>
+            </div>
+          </div>
+          <div class="stp">
+            <div class="stp-left"><div class="stp-num num-neural">2</div><div class="stp-line"></div></div>
+            <div class="stp-body">
+              <div class="stp-name">Matrix multiply</div>
+              <div class="stp-desc"><code>xenc @ W</code> → 1×27 logits</div>
+              <span class="stp-cost cost-medium">27×27 matmul</span>
+            </div>
+          </div>
+          <div class="stp">
+            <div class="stp-left"><div class="stp-num num-neural">3</div><div class="stp-line"></div></div>
+            <div class="stp-body">
+              <div class="stp-name">Softmax (manual)</div>
+              <div class="stp-desc"><code>exp(logits)</code> then divide by row sum</div>
+              <span class="stp-cost cost-medium">27× exp + divide</span>
+            </div>
+          </div>
+          <div class="stp">
+            <div class="stp-left"><div class="stp-num num-neural">4</div><div class="stp-line"></div></div>
+            <div class="stp-body">
+              <div class="stp-name">[with grad] Autograd record</div>
+              <div class="stp-desc">PyTorch records forward ops into computation graph</div>
+              <span class="stp-cost cost-extra">+19% overhead</span>
+            </div>
+          </div>
+          <div class="stp">
+            <div class="stp-left"><div class="stp-num num-neural">5</div></div>
+            <div class="stp-body">
+              <div class="stp-name">Multinomial sample</div>
+              <div class="stp-desc"><code>torch.multinomial(p, 1)</code></div>
+              <span class="stp-cost cost-cheap">27-element CDF scan</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Key Takeaways -->
+  <div class="card">
+    <div class="card-title">Key Takeaways</div>
+    <div class="takeaway-list">
+      <div class="takeaway">
+        <span class="tk-icon">🏆</span>
+        <div class="tk-body">
+          <strong>Count-based wins on both dimensions.</strong> It is ~2× faster AND has lower test NLL (2.4511 vs 2.4712). At bigram scale, a smoothed frequency table is the optimal approach.
+        </div>
+      </div>
+      <div class="takeaway">
+        <span class="tk-icon">📉</span>
+        <div class="tk-body">
+          <strong>The neural model's accuracy gap is fixable.</strong> More epochs, a decaying learning rate, or tuned L2 would close the 0.02 NLL gap — but it still can't beat the count model's speed.
+        </div>
+      </div>
+      <div class="takeaway">
+        <span class="tk-icon">🧮</span>
+        <div class="tk-body">
+          <strong>Autograd overhead is small at this scale.</strong> <code>no_grad</code> saves 19% — the matmul + exp dominates, not bookkeeping.
+        </div>
+      </div>
+      <div class="takeaway">
+        <span class="tk-icon">🚀</span>
+        <div class="tk-body">
+          <strong>Neural pays off when the architecture grows.</strong> Once context window &gt; 1 (MLP / Transformer), a lookup table is no longer feasible — that's where neural wins.
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

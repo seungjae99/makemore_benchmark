@@ -6,20 +6,26 @@ Measures both **sampling speed** and **generalization accuracy (NLL)** on a 90/1
 
 ---
 
+## Report
+
+[View full benchmark report](https://htmlpreview.github.io/?https://github.com/seungjae99/makemore_benchmark/blob/main/benchmark_results.html)
+
+---
+
 ## Results
 
 ### Accuracy — Test NLL Loss (lower is better)
 
 | Model | Test NLL |
 |---|---|
-| Count-based bigram | **2.4511** ✅ |
+| Count-based bigram | **2.4511** (best) |
 | Neural bigram | 2.4712 |
 
 ### Speed — Sampling Latency (lower is better)
 
 | Model | ms / sample | Relative Speed |
 |---|---|---|
-| Count-based bigram | **0.0489** | 1.00× (baseline) ✅ |
+| Count-based bigram | **0.0489** | 1.00× (baseline) |
 | Neural (no\_grad) | 0.0979 | 2.00× slower |
 | Neural (with grad) | 0.1165 | 2.38× slower |
 
