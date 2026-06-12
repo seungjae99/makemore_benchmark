@@ -64,20 +64,6 @@ Once the context window grows beyond 1 character (MLP / Transformer blocks), a l
 python3 benchmark.py
 ```
 
-```
-Dataset: 32033 words  →  train 28829 / test 3204
-
-Test NLL loss  (22,567 bigrams from 3,204 held-out words)
-  count-based : 2.4511
-  neural      : 2.4712
-
-model                             ms/sample   relative speed
-------------------------------------------------------------
-count-based bigram                  0.0489            1.00x
-neural (with grad)                  0.1165            2.38x
-neural (no_grad)                    0.0979            2.00x
-```
-
 ## Dataset
 
 `names.txt` is not included in this repository. Download it from Andrej Karpathy's makemore:
