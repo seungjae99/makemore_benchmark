@@ -1,0 +1,6 @@
+CLAUDE.md
+*.html
+names.txt
+
+__pycache__/
+*.py[cod]
