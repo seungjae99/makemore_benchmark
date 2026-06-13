@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>makemore Benchmark — 기술 포트폴리오</title>
+<style>
+  :root {
+    --ink:       #1a1f2e;
+    --ink-2:     #3d4460;
+    --ink-3:     #6b7490;
+    --divider:   #dde2ee;
+    --bg:        #f7f8fc;
+    --bg-card:   #ffffff;
+    --bg-code:   #f0f2f8;
+    --accent:    #1a56db;
+    --accent-2:  #0e3fa3;
+    --accent-3:  #e8f0fe;
+    --orange:    #c45000;
+    --orange-bg: #fff4ec;
+    --green:     #166534;
+    --green-bg:  #f0faf4;
+    --purple:    #5b21b6;
+    --purple-bg: #f5f3ff;
+    --red:       #991b1b;
+    --red-bg:    #fef2f2;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR',
+                 -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 15px;
+    line-height: 1.75;
+    background: var(--bg);
+    color: var(--ink);
+  }
+
+  /* Topbar */
+  .topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(247,248,252,0.92);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--divider);
+    padding: 0 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 52px;
+  }
+  .topbar-logo { font-size: 13px; font-weight: 700; letter-spacing: 0.04em; color: var(--accent); text-decoration: none; }
+  .topbar-nav  { display: flex; gap: 24px; list-style: none; }
+  .topbar-nav a { font-size: 12.5px; color: var(--ink-3); text-decoration: none; font-weight: 500; }
+  .topbar-nav a:hover { color: var(--accent); }
+  @media (max-width: 600px) { .topbar-nav { display: none; } }
+
+  /* Page */
+  .page { max-width: 900px; margin: 0 auto; padding: 0 24px 60px; }
+
+  /* Hero */
+  .hero { padding: 52px 0 36px; }
+  .hero-eyebrow {
+    font-size: 11.5px; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 14px;
+  }
+  .hero h1 { font-size: 30px; font-weight: 800; color: var(--ink); line-height: 1.25; margin-bottom: 14px; }
+  .hero h1 span { color: var(--accent); }
+  .hero-sub { font-size: 15px; color: var(--ink-2); max-width: 680px; margin-bottom: 20px; }
+  .badge-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .badge {
+    font-size: 12px; font-weight: 600; padding: 3px 10px;
+    border-radius: 20px; border: 1px solid; letter-spacing: 0.02em;
+  }
+  .b-py  { color: #1e6091; background: #e8f4fd; border-color: #7ec8e3; }
+  .b-pt  { color: #5b21b6; background: #f5f3ff; border-color: #a78bfa; }
+  .b-nlp { color: #166534; background: #f0faf4; border-color: #86efac; }
+  .b-bm  { color: #c45000; background: #fff4ec; border-color: #fdba74; }
+
+  /* Metric Row */
+  .metric-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 44px; }
+  .metric-card {
+    background: var(--bg-card); border: 1px solid var(--divider);
+    border-radius: 10px; padding: 20px 22px; border-top: 3px solid var(--accent);
+  }
+  .metric-num   { font-size: 28px; font-weight: 800; color: var(--accent); line-height: 1; margin-bottom: 4px; }
+  .metric-label { font-size: 12px; color: var(--ink-3); font-weight: 500; letter-spacing: 0.02em; }
+  .metric-desc  { font-size: 12.5px; color: var(--ink-2); margin-top: 6px; line-height: 1.5; }
+
+  /* Section */
+  .section { margin-bottom: 44px; }
+  .section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+  .section-num {
+    font-size: 11px; font-weight: 700; color: var(--accent);
+    background: var(--accent-3); padding: 2px 8px; border-radius: 4px;
+    letter-spacing: 0.06em; font-family: 'JetBrains Mono', monospace;
+  }
+  .section-title { font-size: 17px; font-weight: 700; color: var(--ink); }
+
+  /* Card */
+  .card {
+    background: var(--bg-card); border: 1px solid var(--divider);
+    border-radius: 10px; padding: 26px 28px; margin-bottom: 14px;
+  }
+  .card-title {
+    font-size: 12px; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--ink-3); margin-bottom: 14px;
+  }
+  .card p { color: var(--ink-2); margin-bottom: 10px; }
+  .card p:last-child { margin-bottom: 0; }
+
+  /* Grid */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  @media (max-width: 680px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+  @media (max-width: 860px) { .metric-row { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 520px) { .metric-row { grid-template-columns: 1fr; } }
+
+  /* Callout */
+  .callout {
+    border-left: 3px solid; border-radius: 6px;
+    padding: 12px 16px; font-size: 13.5px; margin-bottom: 12px; line-height: 1.6;
+  }
+  .callout-problem  { background: var(--red-bg);    border-color: #ef4444; color: #7f1d1d; }
+  .callout-solution { background: var(--green-bg);  border-color: #22c55e; color: var(--green); }
+  .callout-info     { background: var(--accent-3);  border-color: var(--accent); color: #1e3a8a; }
+  .callout-warn     { background: var(--orange-bg); border-color: #f97316; color: var(--orange); }
+
+  /* Flow */
+  .flow { display: flex; flex-direction: column; gap: 10px; }
+  .flow-step { display: flex; gap: 14px; align-items: flex-start; }
+  .flow-num {
+    flex-shrink: 0; width: 26px; height: 26px;
+    background: var(--accent-3); color: var(--accent);
+    font-size: 12px; font-weight: 700;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace; margin-top: 2px;
+  }
+  .flow-body { font-size: 13.5px; color: var(--ink-2); padding-top: 2px; }
+  .flow-body strong { color: var(--ink); }
+
+  /* Pipeline */
+  .pipeline {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
+    margin-bottom: 12px;
+  }
+  .pipe-step {
+    background: var(--bg-code); border: 1px solid var(--divider);
+    border-radius: 8px; padding: 10px 14px; text-align: center; min-width: 90px;
+  }
+  .plabel { font-size: 11px; font-weight: 700; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.05em; }
+  .pval   { font-size: 12px; color: var(--ink-2); margin-top: 2px; font-family: 'JetBrains Mono', monospace; }
+  .pipe-arrow { font-size: 16px; color: var(--ink-3); }
+  .pipe-note  { font-size: 12px; color: var(--ink-3); margin-top: 4px; }
+
+  /* Table */
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th {
+    background: var(--bg-code); color: var(--ink-3);
+    font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; padding: 10px 14px; text-align: left;
+    border-bottom: 1px solid var(--divider);
+  }
+  td { color: var(--ink-2); padding: 10px 14px; border-bottom: 1px solid #eef0f6; }
+  tr:last-child td { border-bottom: none; }
+  .td-accent { color: var(--accent); font-weight: 700; }
+  .td-win    { color: var(--green);  font-weight: 700; }
+
+  /* Code */
+  pre {
+    background: #1e2130;
+    border: 1px solid #2d3148;
+    border-radius: 8px;
+    padding: 18px 20px;
+    font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+    font-size: 12.5px;
+    line-height: 1.65;
+    color: #c9d1e0;
+    overflow-x: auto;
+    margin-bottom: 12px;
+  }
+  .kw   { color: #ff7b72; }
+  .fn   { color: #d2a8ff; }
+  .str  { color: #a5d6ff; }
+  .cmt  { color: #6b7890; font-style: italic; }
+  .num  { color: #79c0ff; }
+  .type { color: #ffa657; }
+
+  code {
+    font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+    font-size: 12.5px;
+    background: var(--bg-code);
+    border: 1px solid var(--divider);
+    border-radius: 3px;
+    padding: 1px 5px;
+    color: #9a3412;
+  }
+
+  /* Result image */
+  .result-wrap { margin-bottom: 12px; }
+  .result-img  { width: 100%; border-radius: 8px; border: 1px solid var(--divider); }
+  .result-caption { font-size: 12px; color: var(--ink-3); margin-top: 6px; }
+
+  /* Stack */
+  .stack-item {
+    background: var(--bg-card); border: 1px solid var(--divider);
+    border-radius: 10px; padding: 18px 20px;
+  }
+  .stack-name { font-size: 13.5px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+  .stack-role { font-size: 12.5px; color: var(--ink-3); }
+
+  /* Footer */
+  .footer {
+    padding-top: 28px;
+    border-top: 1px solid var(--divider);
+    font-size: 12px; color: var(--ink-3);
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 8px;
+    margin-top: 44px;
+  }
+
+  /* Comparison bar */
+  .bar-wrap { margin-bottom: 8px; }
+  .bar-label { font-size: 12.5px; color: var(--ink-2); margin-bottom: 4px; display: flex; justify-content: space-between; }
+  .bar-track { height: 10px; background: var(--bg-code); border-radius: 99px; overflow: hidden; }
+  .bar-fill  { height: 100%; border-radius: 99px; }
+</style>
+</head>
+<body>
+
+<nav class="topbar">
+  <a class="topbar-logo" href="#">CHOI SEUNGJAE · PORTFOLIO</a>
+  <ul class="topbar-nav">
+    <li><a href="#background">개발 배경</a></li>
+    <li><a href="#architecture">시스템 구조</a></li>
+    <li><a href="#implementation">구현 상세</a></li>
+    <li><a href="#result">실험 결과</a></li>
+    <li><a href="#stack">기술 스택</a></li>
+  </ul>
+</nav>
+
+<div class="page">
+
+  <!-- Hero -->
+  <header class="hero">
+    <div class="hero-eyebrow">NLP · Language Model · Benchmark · 2026</div>
+    <h1>makemore <span>Benchmark</span></h1>
+    <p class="hero-sub">
+      Andrej Karpathy의 makemore 강의를 따라 구현한 바이그램 언어 모델 벤치마크.
+      카운트 기반 모델과 신경망 모델을 동일한 데이터와 조건 아래 놓고,
+      샘플링 속도와 일반화 정확도(NLL) 두 축에서 정량 비교한다.
+    </p>
+    <div class="badge-row">
+      <span class="badge b-py">Python 3</span>
+      <span class="badge b-pt">PyTorch 2.8</span>
+      <span class="badge b-nlp">NLP</span>
+      <span class="badge b-bm">Benchmark</span>
+    </div>
+  </header>
+
+  <!-- Metric Row -->
+  <div class="metric-row">
+    <div class="metric-card">
+      <div class="metric-num">2.4511</div>
+      <div class="metric-label">Count-based Test NLL</div>
+      <div class="metric-desc">낮을수록 좋음. 신경망(2.4712) 대비 더 낮은 손실 달성</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-num">2.00×</div>
+      <div class="metric-label">Neural 대비 속도 차이</div>
+      <div class="metric-desc">카운트 기반 0.049 ms/sample, 신경망(no_grad) 0.098 ms/sample</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-num">32K</div>
+      <div class="metric-label">학습 데이터 규모</div>
+      <div class="metric-desc">영문 이름 32,033개 · 90/10 train/test split (seed 42)</div>
+    </div>
+  </div>
+
+  <!-- 01. 개발 배경 -->
+  <section class="section" id="background">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <span class="section-title">개발 배경 및 문제 정의</span>
+    </div>
+
+    <div class="card">
+      <div class="card-title">학습 동기</div>
+      <p>
+        Andrej Karpathy의 makemore 강의는 바이그램 언어 모델을 두 가지 방식—카운트 기반과 신경망—으로 구현하는 과정을 다룬다.
+        강의에서는 두 접근법의 수식적 동치성을 설명하지만, 실제 구현에서 속도와 정확도가 어떻게 갈리는지는 직접 측정하지 않는다.
+      </p>
+      <p>
+        이론적으로 두 모델은 같은 확률 분포를 근사하지만, 추론 경로가 다르다.
+        카운트 기반은 행렬 조회 한 번이고, 신경망은 one-hot 인코딩 → 행렬곱 → exp → 정규화의 연산 사슬을 거친다.
+        이 구조 차이가 실제 측정값에 어떻게 반영되는지 정량화하는 것이 이 프로젝트의 목적이다.
+      </p>
+      <div class="callout callout-problem" style="margin-top:14px">
+        <strong>문제:</strong> 바이그램 수준에서 신경망 모델이 카운트 기반 대비 속도와 정확도 양쪽에서 실제로 어느 정도 차이를 보이는가? <code>torch.no_grad()</code>가 추론 속도에 미치는 영향은 유의미한가?
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">실험 설계 원칙</div>
+      <div class="flow">
+        <div class="flow-step">
+          <div class="flow-num">1</div>
+          <div class="flow-body"><strong>동일 데이터:</strong> 두 모델이 완전히 같은 train/test split을 사용한다. 고정 시드(42)로 재현 가능성을 보장한다.</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">2</div>
+          <div class="flow-body"><strong>두 축 측정:</strong> 정확도는 test NLL loss, 속도는 1,000회 샘플링의 평균 ms/sample로 분리 측정한다.</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">3</div>
+          <div class="flow-body"><strong>신경망 3가지 조건:</strong> with_grad / no_grad / detached W를 구분하여 autograd 오버헤드를 정밀하게 분리한다.</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">4</div>
+          <div class="flow-body"><strong>모듈 분리:</strong> <code>count_bigram.py</code>와 <code>neural_bigram.py</code>는 독립 모듈로 유지하고, <code>benchmark.py</code>가 오케스트레이션만 담당한다.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02. 시스템 구조 -->
+  <section class="section" id="architecture">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <span class="section-title">시스템 구조 및 데이터 흐름</span>
+    </div>
+
+    <div class="card">
+      <div class="card-title">파일 구조</div>
+      <div class="grid-3" style="margin-bottom:0">
+        <div class="stack-item">
+          <div class="stack-name">benchmark.py</div>
+          <div class="stack-role">진입점. 데이터 로딩, 학습 호출, NLL 계산, 속도 측정, 결과 출력 담당</div>
+        </div>
+        <div class="stack-item">
+          <div class="stack-name">count_bigram.py</div>
+          <div class="stack-role">카운트 기반 모델. <code>build_count_model</code> / <code>sample_count</code> 두 함수로 구성</div>
+        </div>
+        <div class="stack-item">
+          <div class="stack-name">neural_bigram.py</div>
+          <div class="stack-role">신경망 모델. <code>build_neural_model</code> / <code>sample_neural</code> 두 함수로 구성</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">전체 데이터 흐름</div>
+      <div class="pipeline">
+        <div class="pipe-step">
+          <div class="plabel">names.txt</div>
+          <div class="pval">32,033 names</div>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step">
+          <div class="plabel">Split</div>
+          <div class="pval">90/10 seed 42</div>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step" style="border-color:var(--accent); background:var(--accent-3);">
+          <div class="plabel" style="color:var(--accent);">Train</div>
+          <div class="pval">28,829</div>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step">
+          <div class="plabel">Count Model</div>
+          <div class="pval">P [27×27]</div>
+        </div>
+        <div class="pipe-arrow">+</div>
+        <div class="pipe-step">
+          <div class="plabel">Neural Model</div>
+          <div class="pval">W [27×27]</div>
+        </div>
+      </div>
+      <div class="pipeline">
+        <div class="pipe-step" style="border-color:var(--accent); background:var(--accent-3);">
+          <div class="plabel" style="color:var(--accent);">Test</div>
+          <div class="pval">3,204</div>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step">
+          <div class="plabel">NLL Loss</div>
+          <div class="pval">per bigram</div>
+        </div>
+        <div class="pipe-arrow">+</div>
+        <div class="pipe-step">
+          <div class="plabel">Speed</div>
+          <div class="pval">1,000 samples</div>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step">
+          <div class="plabel">Report</div>
+          <div class="pval">ms / NLL</div>
+        </div>
+      </div>
+      <p class="pipe-note">어휘 크기는 26개 소문자 + 구분자 '.' = 27. 두 모델 모두 27×27 행렬을 핵심 파라미터로 사용한다.</p>
+    </div>
+  </section>
+
+  <!-- 03. 핵심 구현 -->
+  <section class="section" id="implementation">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <span class="section-title">핵심 구현 상세</span>
+    </div>
+
+    <div class="grid-2">
+      <div class="card" style="margin-bottom:0">
+        <div class="card-title">Count-based Model</div>
+        <p>27×27 빈도 행렬 N을 구축한 뒤, Laplace smoothing(+1)을 적용하고 행 단위로 정규화하여 확률 분포 행렬 P를 생성한다.</p>
+        <pre><code class="kw">def</code> <code class="fn">build_count_model</code>(words):
+    N = torch.<code class="fn">zeros</code>((<code class="num">27</code>, <code class="num">27</code>), dtype=torch.int32)
+    <code class="cmt"># 빈도 행렬 구축</code>
+    <code class="kw">for</code> w <code class="kw">in</code> words:
+        chs = [<code class="str">'.'</code>] + <code class="fn">list</code>(w) + [<code class="str">'.'</code>]
+        <code class="kw">for</code> ch1, ch2 <code class="kw">in</code> <code class="fn">zip</code>(chs, chs[<code class="num">1</code>:]):
+            N[stoi[ch1], stoi[ch2]] += <code class="num">1</code>
+    <code class="cmt"># Laplace smoothing + 정규화</code>
+    P = (N + <code class="num">1</code>).<code class="fn">float</code>()
+    P /= P.<code class="fn">sum</code>(<code class="num">1</code>, keepdim=<code class="kw">True</code>)
+    <code class="kw">return</code> P, stoi, itos</pre>
+        <p style="margin-top:10px">샘플링은 <code>P[ix]</code> 행 조회 후 <code>torch.multinomial</code> 한 번으로 완결된다. 연산 복잡도는 O(1)이다.</p>
+      </div>
+
+      <div class="card" style="margin-bottom:0">
+        <div class="card-title">Neural Model</div>
+        <p>27×27 가중치 행렬 W를 경사하강법으로 학습한다. 100 epoch, lr=50, L2 정규화(λ=0.01). 손실 함수는 NLL.</p>
+        <pre><code class="kw">for</code> _ <code class="kw">in</code> <code class="fn">range</code>(<code class="num">100</code>):
+    logits = xenc @ W
+    counts = logits.<code class="fn">exp</code>()
+    probs = counts / counts.<code class="fn">sum</code>(<code class="num">1</code>, keepdim=<code class="kw">True</code>)
+    loss = -probs[<code class="fn">arange</code>(num), ys].<code class="fn">log</code>().<code class="fn">mean</code>() \
+           + <code class="num">0.01</code>*(W**<code class="num">2</code>).<code class="fn">mean</code>()
+    W.grad = <code class="kw">None</code>
+    loss.<code class="fn">backward</code>()
+    W.data += -<code class="num">50</code> * W.grad</pre>
+        <p style="margin-top:10px">추론 시 샘플링마다 전체 forward pass(one-hot → matmul → exp → normalize)를 반복한다.</p>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <div class="card-title">속도 측정 방법론</div>
+      <div class="flow">
+        <div class="flow-step">
+          <div class="flow-num">1</div>
+          <div class="flow-body"><strong>반복 횟수:</strong> 모델별 1,000회 샘플링. 평균 ms/sample 산출로 이상치 영향을 최소화한다.</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">2</div>
+          <div class="flow-body"><strong>타이머:</strong> <code>time.perf_counter()</code> — OS가 제공하는 고해상도 단조 시계. 시스템 시간 변경에 무관하다.</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">3</div>
+          <div class="flow-body"><strong>세 가지 신경망 조건:</strong> (a) W에 <code>requires_grad=True</code>인 채로 샘플링, (b) <code>torch.no_grad()</code> 컨텍스트, (c) <code>W.detach()</code>를 사용하는 기본 경우를 분리 측정하여 autograd 오버헤드를 정밀 분리한다.</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">4</div>
+          <div class="flow-body"><strong>시드 고정:</strong> 각 측정 루프 직전에 <code>torch.Generator().manual_seed(42)</code>를 리셋하여 샘플 수 편차를 제거한다.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">설계 결정 — build_neural_model 반환값</div>
+      <div class="callout callout-info">
+        <strong>참고:</strong> <code>build_neural_model</code>은 <code>W.detach()</code>를 반환한다. 추론에서 그래디언트가 불필요하며, 호출자가 실수로 역전파를 실행하는 상황을 원천 차단한다.
+      </div>
+      <p>
+        with_grad 측정은 <code>W_grad = W.clone().requires_grad_(True)</code>로 별도 복사본을 만들어 수행한다.
+        이렇게 하면 기본 경로(detached W)와 with_grad 경로를 독립적으로 측정할 수 있다.
+      </p>
+    </div>
+  </section>
+
+  <!-- 04. 실험 결과 -->
+  <section class="section" id="result">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <span class="section-title">실험 결과 및 분석</span>
+    </div>
+
+    <div class="card">
+      <div class="card-title">정확도 — Test NLL Loss (낮을수록 좋음)</div>
+      <table>
+        <thead>
+          <tr><th>모델</th><th>Test NLL</th><th>비교</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Count-based bigram</td>
+            <td class="td-win">2.4511</td>
+            <td class="td-win">best</td>
+          </tr>
+          <tr>
+            <td>Neural bigram</td>
+            <td>2.4712</td>
+            <td style="color:var(--ink-3)">+0.0201</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="callout callout-info" style="margin-top:14px">
+        <strong>분석:</strong> 카운트 기반이 더 낮은 NLL을 달성한다. 27자 어휘의 바이그램 분포는 Laplace smoothing으로 이미 최적에 가까운 추정이 가능하다. 신경망은 100 epoch 학습으로 같은 분포에 수렴하려 하지만, 이산 확률 문제에서 감마분포 사전확률로서 Laplace smoothing이 경험적으로 더 잘 보정된 추정량이다.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">속도 — 샘플링 레이턴시 (1,000회 평균)</div>
+      <table>
+        <thead>
+          <tr><th>모델</th><th>ms / sample</th><th>상대 속도</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Count-based bigram</td>
+            <td class="td-win">0.0489</td>
+            <td class="td-win">1.00× (baseline)</td>
+          </tr>
+          <tr>
+            <td>Neural (no_grad)</td>
+            <td>0.0979</td>
+            <td>2.00× slower</td>
+          </tr>
+          <tr>
+            <td>Neural (with grad)</td>
+            <td>0.1165</td>
+            <td>2.38× slower</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div style="margin-top:18px">
+        <div class="bar-wrap">
+          <div class="bar-label"><span>Count-based</span><span>0.0489 ms</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:42%; background:var(--green)"></div></div>
+        </div>
+        <div class="bar-wrap">
+          <div class="bar-label"><span>Neural (no_grad)</span><span>0.0979 ms</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:84%; background:var(--accent)"></div></div>
+        </div>
+        <div class="bar-wrap">
+          <div class="bar-label"><span>Neural (with grad)</span><span>0.1165 ms</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:100%; background:var(--orange)"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">핵심 고찰</div>
+
+      <div class="callout callout-solution" style="margin-bottom:10px">
+        <strong>고찰 1 — 카운트 기반이 양쪽 모두 우세:</strong>
+        바이그램 스케일에서는 확률 테이블 조회가 forward pass보다 빠르고 정확하다.
+        연산 경로가 단순할수록 추론 오버헤드가 없고, Laplace smoothing이 이산 분포에 잘 맞는 사전확률이기 때문이다.
+      </div>
+
+      <div class="callout callout-warn" style="margin-bottom:10px">
+        <strong>고찰 2 — no_grad의 효과는 19%에 불과:</strong>
+        <code>torch.no_grad()</code>를 적용해도 속도가 2.38× → 2.00× 수준으로만 개선된다.
+        추론 병목은 autograd 북키핑이 아닌 순전파 연산(matmul + exp + normalize) 자체에 있음을 시사한다.
+      </div>
+
+      <div class="callout callout-info">
+        <strong>고찰 3 — 아키텍처가 확장될수록 역전:</strong>
+        컨텍스트 창이 1을 넘어 MLP나 Transformer 구조로 확장되면 조회 테이블은 지수적으로 커져 비실용적이 된다.
+        신경망의 추론 오버헤드는 그 시점부터 정당화된다.
+      </div>
+    </div>
+  </section>
+
+  <!-- 05. 기술 스택 -->
+  <section class="section" id="stack">
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <span class="section-title">기술 스택 및 환경</span>
+    </div>
+
+    <div class="card">
+      <div class="card-title">사용 기술</div>
+      <div class="grid-3">
+        <div class="stack-item">
+          <div class="stack-name">Python 3.9.6</div>
+          <div class="stack-role">데이터 처리, 모듈 설계, 벤치마크 오케스트레이션</div>
+        </div>
+        <div class="stack-item">
+          <div class="stack-name">PyTorch 2.8.0</div>
+          <div class="stack-role">텐서 연산, 경사하강법, multinomial 샘플링, no_grad 컨텍스트</div>
+        </div>
+        <div class="stack-item">
+          <div class="stack-name">time.perf_counter</div>
+          <div class="stack-role">고해상도 단조 시계 — 샘플링 레이턴시 정밀 측정</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">실행 환경</div>
+      <table>
+        <thead><tr><th>항목</th><th>값</th></tr></thead>
+        <tbody>
+          <tr><td>플랫폼</td><td>macOS 26.5 (arm64)</td></tr>
+          <tr><td>Python</td><td>3.9.6</td></tr>
+          <tr><td>PyTorch</td><td>2.8.0</td></tr>
+          <tr><td>데이터셋</td><td>names.txt — 영문 이름 32,033개 (Karpathy makemore)</td></tr>
+          <tr><td>Train / Test split</td><td>90 / 10 (seed 42)</td></tr>
+          <tr><td>속도 측정 횟수</td><td>1,000 samples per model</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-title">확장 가능성</div>
+      <div class="flow">
+        <div class="flow-step">
+          <div class="flow-num">&#10003;</div>
+          <div class="flow-body"><strong>MLP Bigram:</strong> 컨텍스트 창을 2+ 문자로 늘리면 카운트 테이블이 27^N으로 폭발적으로 증가한다. 이 지점부터 신경망이 유일한 실용적 선택이 된다.</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">&#10003;</div>
+          <div class="flow-body"><strong>WaveNet / Transformer:</strong> makemore 강의 후반부에서 등장하는 모델들. 동일한 벤치마크 프레임워크에 새 모듈만 추가하면 비교 확장이 가능하다.</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">&#10003;</div>
+          <div class="flow-body"><strong>하드웨어 비교:</strong> CPU vs MPS(Apple Silicon GPU) 조건을 추가하면 신경망의 배치 처리 가속 효과를 정량화할 수 있다.</div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">&#10003;</div>
+          <div class="flow-body"><strong>한국어 / 다국어:</strong> 어휘 크기가 커지는 환경(예: 자모 분리 한국어)에서 두 모델의 파라미터 수 차이와 성능 차이가 어떻게 변화하는지 실험할 수 있다.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div><strong>최승재 (Choi Seungjae)</strong> · 자율운항시스템공학과 · 충남대학교</div>
+    <div>makemore Benchmark · 개인 학습 프로젝트 · 2026</div>
+  </footer>
+
+</div>
+</body>
+</html>
